@@ -35,22 +35,24 @@ export const EditButton = () => (
 );
 
 const ListInner = ({ name, assocId, isSelected, id }: Partial<ListItemProps>) => {
-  return name?.startsWith('Create Option: ') ? (
-    <p>{name}</p>
-  ) : (
-    <div className="form-check form-check-inline">
-      <input
-        type="checkbox"
-        id={assocId?.toString()}
-        value={name}
-        checked={isSelected}
-        onChange={(ev) => ev.preventDefault()}
-        className={`form-check position-static ${isSelected ? 'checked' : ''}`}
-        data-tagid={id}
-      />
-      <label className="ml-4 form-check-label">{name}</label>
-    </div>
-  );
+  if (name?.startsWith('Create Option: ')) {
+    return <p>{name}</p>;
+  } else {
+    return (
+      <div className="form-check form-check-inline">
+        <input
+          type="checkbox"
+          id={assocId?.toString()}
+          value={name}
+          checked={isSelected}
+          onChange={(ev) => ev.preventDefault()}
+          className={`form-check position-static ${isSelected ? 'checked' : ''}`}
+          data-tagid={id}
+        />
+        <label className="ml-4 form-check-label">{name}</label>
+      </div>
+    );
+  }
 };
 
 interface ListItemProps {
