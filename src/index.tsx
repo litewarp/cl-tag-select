@@ -1,11 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import TagSelect from './TagSelect';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <TagSelect />
   </React.StrictMode>,
   document.getElementById('root')
 );
-
