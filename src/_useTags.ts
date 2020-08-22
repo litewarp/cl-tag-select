@@ -62,7 +62,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
       const nextPage = (lastPage as ApiResult<Tag>).next;
       if (!nextPage) return false;
       const matches = nextPage.match(/page\=(\d+)/);
-      return !matches ? false : matches[1];
+      return matches && matches[1] ? matches[1] : false;
     },
   });
 

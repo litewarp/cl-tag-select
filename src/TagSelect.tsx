@@ -3,8 +3,7 @@ import { useVirtual } from 'react-virtual';
 import { useCombobox } from 'downshift';
 import { ListItem } from './ListItem';
 import { useTags } from './_useTags';
-import { appFetch } from './_fetch';
-import { ApiResult, Tag, Association } from './_types';
+import { Association } from './_types';
 
 const isAuthenticated = true;
 function getDocketIdFromH1Tag() {
@@ -62,6 +61,7 @@ const TagSelect: React.FC = () => {
   } = useCombobox({
     inputValue: textVal,
     itemToString: (item) => (item ? item.name : ''),
+    // set to none to select multiple
     selectedItem: null,
     items: tags,
     scrollIntoView: () => {},
@@ -74,7 +74,7 @@ const TagSelect: React.FC = () => {
             ...changes,
             isOpen: true, // keep menu open after selection.
             highlightedIndex: state.highlightedIndex,
-            inputValue: '',
+            inputValue: '', // reset the input value after create
           };
         default:
           return changes;
