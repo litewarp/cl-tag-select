@@ -13,6 +13,7 @@ function getDocketIdFromH1Tag() {
 }
 
 const TagSelect: React.FC = () => {
+  const [validationError, setValidationError] = React.useState<null | string>(null);
   const docket = getDocketIdFromH1Tag();
 
   const {
@@ -82,8 +83,13 @@ const TagSelect: React.FC = () => {
     onSelectedItemChange: ({ selectedItem }) => {
       if (!selectedItem) return;
       const isCreateItemOption = selectedItem.name.startsWith('Create Option:');
-      if (isCreateItemOption)
+      if (isCreateItemOption) {
+        const validInput = textVal.match(/^[a-z\-]*$/);
+        if (!validInput) {
+          return setValidationError("Only lowercase letters and '-' allowed");
+        }
         return addNewTag({ name: selectedItem.name.replace('Create Option: ', '') });
+      }
       const isAlreadySelected = !associations
         ? false
         : !!(associations as Association[]).find((a) => a.tag === selectedItem.id);
@@ -137,7 +143,12 @@ const TagSelect: React.FC = () => {
           {...getComboboxProps()}
           className="list-group-item list-group-item-action"
         >
-          <input {...getInputProps({})} className="form-control" placeholder="Search for a tag" />
+          <input
+            {...getInputProps({})}
+            className={`form-control ${validationError && 'is-invalid'}`}
+            placeholder="Search for a tag"
+          />
+          {validationError && <div className="invalid-feedback">{validationError}</div>}
         </li>
         <div
           style={{
