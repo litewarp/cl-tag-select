@@ -68,13 +68,18 @@ const TagSelect: React.FC = () => {
     stateReducer: (state, actionAndChanges) => {
       const { changes, type } = actionAndChanges;
       switch (type) {
+        case useCombobox.stateChangeTypes.InputChange:
+          return {
+            // return normal changes
+            ...changes,
+          };
+
         case useCombobox.stateChangeTypes.InputKeyDownEnter:
         case useCombobox.stateChangeTypes.ItemClick:
           return {
             ...changes,
             isOpen: true, // keep menu open after selection.
             highlightedIndex: state.highlightedIndex,
-            inputValue: '', // reset the input value after create
           };
         default:
           return changes;
@@ -97,44 +102,56 @@ const TagSelect: React.FC = () => {
         addNewAssociation({ tag: parseInt(selectedItem.id as string, 10) });
       }
     },
-    onInputValueChange: ({ inputValue }) => {
-      if (inputValue) setTextVal(inputValue);
-    },
     onHighlightedIndexChange: ({ highlightedIndex }) => {
-      if (highlightedIndex !== undefined) {
-        rowVirtualizer.scrollToIndex(highlightedIndex);
-      }
+      if (highlightedIndex) rowVirtualizer.scrollToIndex(highlightedIndex);
     },
   });
 
   return (
     <div style={{ padding: '2rem' }}>
-      <button {...getToggleButtonProps()} disabled={!isAuthenticated} aria-label="toggle tag menu">
+      <button
+        {...getToggleButtonProps()}
+        disabled={!isAuthenticated}
+        aria-label="toggle tag menu"
+        className="btn btn-primary"
+      >
         Tags <span className="caret"></span>
       </button>
       <div
         style={{
-          border: isOpen ? '1px solid black' : 'none',
+          marginTop: '2px',
+          border: isOpen ? '1px solid grey' : 'none',
           maxWidth: '300px',
           maxHeight: '500px',
           overflowY: isOpen ? 'scroll' : 'hidden',
         }}
       >
-        <label
+        <li
+          className="list-group-item list-group-item-action"
+          style={{ display: isOpen ? 'block' : 'none' }}
           {...getLabelProps()}
-          style={{ maginLeft: '1rem', display: isOpen ? 'block' : 'none' }}
         >
           Apply tags to this item
-        </label>
-        <div style={{ padding: '1em', display: isOpen ? 'block' : 'none' }} {...getComboboxProps()}>
-          <input {...getInputProps()} />
-        </div>
+        </li>
+        <li
+          style={{ padding: '1em', display: isOpen ? 'block' : 'none' }}
+          {...getComboboxProps()}
+          className="list-group-item list-group-item-action"
+        >
+          <input
+            {...getInputProps({
+              onChange: (e: React.ChangeEvent<HTMLInputElement>) => setTextVal(e.target.value),
+            })}
+            className="form-control"
+            placeholder="Search for a tag"
+          />
+        </li>
         <div
           //@ts-ignore
           {...getMenuProps({ ref: parentRef })}
           style={{
             height: `${rowVirtualizer.totalSize}px`,
-            width: '50%',
+            width: '100%',
             position: 'relative',
           }}
         >
@@ -179,10 +196,12 @@ const TagSelect: React.FC = () => {
               );
             })}
         </div>
-        <li style={{ marginLeft: '1rem', display: isOpen ? 'block' : 'none' }}>
-          <a href="/edit-tags-url">
-            <i className="fa fa-pencil"></i>
-            Edit Labels
+        <li
+          style={{ display: isOpen ? 'block' : 'none' }}
+          className="list-group-item list-group-item-action"
+        >
+          <a className="btn btn-default" href="/edit-tags-url">
+            <span className="glyphicon glyphicon-pencil" aria-hidden="true" /> Edit Labels
           </a>
         </li>
       </div>

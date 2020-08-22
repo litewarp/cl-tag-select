@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface FetchOptions {
   method?: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH' | 'OPTIONS';
   headers?: { [key: string]: any };

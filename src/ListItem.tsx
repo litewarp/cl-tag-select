@@ -10,10 +10,12 @@ interface ListItemProps {
 
 export const ListItem: React.FC<ListItemProps> = ({ id, name, assocId, isSelected }) => {
   const isCreateItem = name.startsWith('Create Option: ');
-  const style = { marginLeft: '1rem', listStyle: 'none' };
 
   return (
-    <li style={isCreateItem ? { ...style, cursor: 'default' } : style}>
+    <li
+      style={isCreateItem ? { cursor: 'default' } : {}}
+      className="list-group-item list-group-item-action"
+    >
       {isCreateItem ? (
         <p>{name}</p>
       ) : (

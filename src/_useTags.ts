@@ -17,7 +17,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
 
   const getAssociations = React.useCallback(
     async (key: string) => await appFetch(`/api/rest/v3/docket-tags/?docket=${docket}`),
-    []
+    [docket]
   );
 
   const postTag = React.useCallback(
@@ -35,7 +35,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
         method: 'POST',
         body: { tag, docket },
       }),
-    []
+    [docket]
   );
 
   const deleteAssoc = React.useCallback(
@@ -61,7 +61,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
     getFetchMore: (lastPage, allPages) => {
       const nextPage = (lastPage as ApiResult<Tag>).next;
       if (!nextPage) return false;
-      const matches = nextPage.match(/page\=(\d+)/);
+      const matches = nextPage.match(/page=(\d+)/);
       return matches && matches[1] ? matches[1] : false;
     },
   });
