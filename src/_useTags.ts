@@ -58,6 +58,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
     fetchMore,
     canFetchMore,
   } = useInfiniteQuery('tags', getTags, {
+    // if the lastPage has a next key, extract the page number
     getFetchMore: (lastPage, allPages) => {
       const nextPage = (lastPage as ApiResult<Tag>).next;
       if (!nextPage) return false;
@@ -68,6 +69,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
 
   const [deleteAssociation] = useMutation(deleteAssoc, {
     onSuccess: (data, variables) => {
+      // update the cache to remove the just-deleted association
       queryCache.setQueryData('associations', (old: any) => ({
         ...old,
         results: old.results.filter((assoc: Association) => assoc.id !== variables.assocId),
@@ -77,6 +79,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
 
   const [addNewAssociation] = useMutation(postAssoc, {
     onSuccess: (data, variables) =>
+      // update the cache to add the just created association
       queryCache.setQueryData('associations', (old: any) => ({
         ...old,
         results: [...old.results, data],
@@ -84,6 +87,8 @@ export const useTags = ({ docket }: UseTagsProps) => {
   });
 
   const [addNewTag] = useMutation(postTag, {
+    // if the new tag is created, update the cache to include the just-created tag
+    // then fire the addNewAssociation mutation
     onSuccess: (data, variables) => {
       setTextVal('');
       queryCache.setQueryData('tags', (old: any) => {
@@ -103,6 +108,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
     },
   });
 
+  // memoize the tag entries to reduce renders and apply the filter
   const filteredTags = React.useMemo(() => {
     const flatTags = !tags
       ? []
@@ -117,11 +123,16 @@ export const useTags = ({ docket }: UseTagsProps) => {
       return { ...tag, assocId: assoc?.id };
     });
 
-    if (!textVal) return enhancedTags;
+    // case insensitive alpha sorting
+    const sortedTags = enhancedTags.sort((a, b) => {
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    });
+
+    if (!textVal) return sortedTags;
 
     let exactMatch;
 
-    const filtered: Tag[] | undefined = enhancedTags.filter((tag: Tag) => {
+    const filtered: Tag[] | undefined = sortedTags.filter((tag: Tag) => {
       if (!!textVal && tag.name === textVal) {
         exactMatch = true;
       }
@@ -131,6 +142,7 @@ export const useTags = ({ docket }: UseTagsProps) => {
     if (exactMatch) {
       return filtered;
     } else {
+      // inject a create option to precede the listed tags
       return [
         {
           id: '-10',

@@ -68,12 +68,6 @@ const TagSelect: React.FC = () => {
     stateReducer: (state, actionAndChanges) => {
       const { changes, type } = actionAndChanges;
       switch (type) {
-        case useCombobox.stateChangeTypes.InputChange:
-          return {
-            // return normal changes
-            ...changes,
-          };
-
         case useCombobox.stateChangeTypes.InputKeyDownEnter:
         case useCombobox.stateChangeTypes.ItemClick:
           return {
@@ -103,7 +97,14 @@ const TagSelect: React.FC = () => {
       }
     },
     onHighlightedIndexChange: ({ highlightedIndex }) => {
-      if (highlightedIndex) rowVirtualizer.scrollToIndex(highlightedIndex);
+      if (highlightedIndex && highlightedIndex >= 0) {
+        rowVirtualizer.scrollToIndex(highlightedIndex);
+      }
+    },
+    onInputValueChange: ({ inputValue }) => {
+      if (inputValue != undefined) {
+        setTextVal(inputValue);
+      }
     },
   });
 
@@ -122,8 +123,6 @@ const TagSelect: React.FC = () => {
           marginTop: '2px',
           border: isOpen ? '1px solid grey' : 'none',
           maxWidth: '300px',
-          maxHeight: '500px',
-          overflowY: isOpen ? 'scroll' : 'hidden',
         }}
       >
         <li
@@ -138,63 +137,64 @@ const TagSelect: React.FC = () => {
           {...getComboboxProps()}
           className="list-group-item list-group-item-action"
         >
-          <input
-            {...getInputProps({
-              onChange: (e: React.ChangeEvent<HTMLInputElement>) => setTextVal(e.target.value),
-            })}
-            className="form-control"
-            placeholder="Search for a tag"
-          />
+          <input {...getInputProps({})} className="form-control" placeholder="Search for a tag" />
         </li>
         <div
-          //@ts-ignore
-          {...getMenuProps({ ref: parentRef })}
           style={{
-            height: `${rowVirtualizer.totalSize}px`,
-            width: '100%',
-            position: 'relative',
+            overflowY: isOpen ? 'scroll' : 'hidden',
+            maxHeight: '500px',
           }}
         >
-          {isOpen &&
-            rowVirtualizer.virtualItems.map((virtualRow) => {
-              const isLoaderRow = virtualRow.index > tags.length - 1;
-              const tag = tags[virtualRow.index];
-              return (
-                <div
-                  key={virtualRow.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                >
+          <div
+            //@ts-ignore
+            {...getMenuProps({ ref: parentRef })}
+            style={{
+              height: `${rowVirtualizer.totalSize}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {isOpen &&
+              rowVirtualizer.virtualItems.map((virtualRow) => {
+                const isLoaderRow = virtualRow.index > tags.length - 1;
+                const tag = tags[virtualRow.index];
+                return (
                   <div
-                    style={
-                      highlightedIndex === virtualRow.index ? { backgroundColor: '#bde4ff' } : {}
-                    }
-                    key={tag ? tag.name : 'loading row'}
-                    {...getItemProps({ item: tag, index: virtualRow.index })}
+                    key={virtualRow.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
                   >
-                    {isLoaderRow ? (
-                      canFetchMore ? (
-                        'Loading more...'
+                    <div
+                      style={
+                        highlightedIndex === virtualRow.index ? { backgroundColor: '#bde4ff' } : {}
+                      }
+                      key={tag ? tag.name : 'loading row'}
+                      {...getItemProps({ item: tag, index: virtualRow.index })}
+                    >
+                      {isLoaderRow ? (
+                        canFetchMore ? (
+                          'Loading more...'
+                        ) : (
+                          'Nothing more to load'
+                        )
                       ) : (
-                        'Nothing more to load'
-                      )
-                    ) : (
-                      <ListItem
-                        isSelected={!!associations.find((a) => a.tag === tag.id)}
-                        key={virtualRow.index}
-                        {...tag}
-                      />
-                    )}
+                        <ListItem
+                          isSelected={!!associations.find((a) => a.tag === tag.id)}
+                          key={virtualRow.index}
+                          {...tag}
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+          </div>
         </div>
         <li
           style={{ display: isOpen ? 'block' : 'none' }}
