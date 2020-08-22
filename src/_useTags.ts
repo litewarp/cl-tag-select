@@ -9,6 +9,7 @@ interface UseTagsProps {
 
 export const useTags = ({ docket }: UseTagsProps) => {
   const [textVal, setTextVal] = React.useState<string>('');
+
   const getTags = React.useCallback(
     async (key: string, page = 1) => await appFetch(`/api/rest/v3/tags/?page=${page}`),
     []
@@ -57,7 +58,12 @@ export const useTags = ({ docket }: UseTagsProps) => {
     fetchMore,
     canFetchMore,
   } = useInfiniteQuery('tags', getTags, {
-    getFetchMore: (lastPage, allPages) => (lastPage as ApiResult<Tag>).next,
+    getFetchMore: (lastPage, allPages) => {
+      const nextPage = (lastPage as ApiResult<Tag>).next;
+      if (!nextPage) return false;
+      const matches = nextPage.match(/page\=(\d+)/);
+      return !matches ? false : matches[1];
+    },
   });
 
   const [deleteAssociation] = useMutation(deleteAssoc, {
@@ -81,13 +87,17 @@ export const useTags = ({ docket }: UseTagsProps) => {
     onSuccess: (data, variables) => {
       setTextVal('');
       queryCache.setQueryData('tags', (old: any) => {
-        // stay immutable
-        const clone = old;
-        // remove the last element
-        const lastResultObj = clone.pop();
-
-        clone.push({ ...lastResultObj, results: [lastResultObj.results] });
-        return clone;
+        const keys = Object.keys(old);
+        const lastKey = keys[keys.length - 1];
+        const lastResult = old[lastKey];
+        const newResult = {
+          ...lastResult,
+          results: [
+            ...lastResult.results,
+            { ...(data as Tag), dockets: [...(data as Tag).dockets, docket] },
+          ],
+        };
+        return { ...old, [lastKey]: newResult };
       });
       addNewAssociation({ tag: (data as Tag).id });
     },
@@ -96,7 +106,9 @@ export const useTags = ({ docket }: UseTagsProps) => {
   const filteredTags = React.useMemo(() => {
     const flatTags = !tags
       ? []
-      : tags.map((apiResult) => (apiResult as ApiResult<Tag>).results).flat(1);
+      : Object.entries(tags)
+          .map(([key, apiResult]) => (apiResult as ApiResult<Tag>).results)
+          .flat(1);
 
     // rebuild tagData with the assocId
     const enhancedTags = flatTags.map((tag: Tag) => {

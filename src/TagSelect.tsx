@@ -40,7 +40,12 @@ const TagSelect: React.FC = () => {
 
     if (!lastItem) return;
 
-    if (lastItem.index === tags.length - 1 && canFetchMore && !isFetchingMore) {
+    if (
+      lastItem.index === rowVirtualizer.virtualItems.length - 1 &&
+      canFetchMore &&
+      !isFetchingMore
+    ) {
+      console.log('fetching more');
       fetchMore();
     }
   }, [canFetchMore, fetchMore, tags.length, isFetchingMore, rowVirtualizer.virtualItems]);
@@ -107,7 +112,14 @@ const TagSelect: React.FC = () => {
       <button {...getToggleButtonProps()} disabled={!isAuthenticated} aria-label="toggle tag menu">
         Tags <span className="caret"></span>
       </button>
-      <div style={{ border: isOpen ? '1px solid black' : 'none', maxWidth: '300px' }}>
+      <div
+        style={{
+          border: isOpen ? '1px solid black' : 'none',
+          maxWidth: '300px',
+          maxHeight: '500px',
+          overflowY: isOpen ? 'scroll' : 'hidden',
+        }}
+      >
         <label
           {...getLabelProps()}
           style={{ maginLeft: '1rem', display: isOpen ? 'block' : 'none' }}
@@ -128,6 +140,7 @@ const TagSelect: React.FC = () => {
         >
           {isOpen &&
             rowVirtualizer.virtualItems.map((virtualRow) => {
+              const isLoaderRow = virtualRow.index > tags.length - 1;
               const tag = tags[virtualRow.index];
               return (
                 <div
@@ -145,14 +158,22 @@ const TagSelect: React.FC = () => {
                     style={
                       highlightedIndex === virtualRow.index ? { backgroundColor: '#bde4ff' } : {}
                     }
-                    key={tag.name}
+                    key={tag ? tag.name : 'loading row'}
                     {...getItemProps({ item: tag, index: virtualRow.index })}
                   >
-                    <ListItem
-                      isSelected={!!associations.find((a) => a.tag === tag.id)}
-                      key={virtualRow.index}
-                      {...tag}
-                    />
+                    {isLoaderRow ? (
+                      canFetchMore ? (
+                        'Loading more...'
+                      ) : (
+                        'Nothing more to load'
+                      )
+                    ) : (
+                      <ListItem
+                        isSelected={!!associations.find((a) => a.tag === tag.id)}
+                        key={virtualRow.index}
+                        {...tag}
+                      />
+                    )}
                   </div>
                 </div>
               );
